@@ -1,0 +1,166 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจัดการและจัดเรียงเมนูชาบูด้วย Merge Sort</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Prompt', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-red-600 to-rose-700 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold flex items-center gap-2">
+                    🍲 ระบบจัดการและจัดเรียงเมนูชาบู
+                </h1>
+                <p class="text-red-100 text-sm mt-1">ขับเคลื่อนด้วยอัลกอริทึม Merge Sort ประสิทธิภาพสูง</p>
+            </div>
+            <div class="bg-white/10 backdrop-blur-md px-4 py-2 rounded-xl text-sm border border-white/20">
+                สถานะระบบ: <span class="text-emerald-300 font-semibold">● พร้อมใช้งาน</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        
+        <!-- Controls Bar -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 mb-6 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                <div>
+                    <label class="block text-xs font-medium text-slate-500 mb-1">จัดเรียงตามฟิลด์</label>
+                    <select id="sortField" class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-red-500">
+                        <option value="item_id">รหัสเมนู</option>
+                        <option value="name">ชื่อเมนู</option>
+                        <option value="category">หมวดหมู่</option>
+                        <option value="price">ราคา (บาท)</option>
+                        <option value="stock">คงเหลือ (ถาด)</option>
+                        <option value="calories">แคลอรี (kcal)</option>
+                        <option value="rating">คะแนนความนิยม</option>
+                        <option value="preparation_time">เวลาเตรียม (นาที)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-500 mb-1">ทิศทางการเรียง</label>
+                    <select id="sortOrder" class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-red-500">
+                        <option value="asc">น้อย → มาก (Ascending)</option>
+                        <option value="desc">มาก → น้อย (Descending)</option>
+                    </select>
+                </div>
+                <div class="flex items-end self-end">
+                    <button onclick="fetchMenu()" class="bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-5 py-2 rounded-xl transition shadow-sm shadow-red-200">
+                        ประมวลผล Merge Sort
+                    </button>
+                </div>
+            </div>
+
+            <div class="w-full md:w-72">
+                <label class="block text-xs font-medium text-slate-500 mb-1">ค้นหาเมนูในตาราง</label>
+                <input type="text" id="searchInput" placeholder="พิมพ์ชื่อเมนู หรือหมวดหมู่..." class="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-red-500">
+            </div>
+        </div>
+
+        <!-- Table Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider border-b border-slate-100">
+                            <th class="py-4 px-4 font-semibold text-center">รหัส</th>
+                            <th class="py-4 px-4 font-semibold">ชื่อเมนู</th>
+                            <th class="py-4 px-4 font-semibold">หมวดหมู่</th>
+                            <th class="py-4 px-4 font-semibold text-right">ราคา</th>
+                            <th class="py-4 px-4 font-semibold text-center">สถานะ</th>
+                            <th class="py-4 px-4 font-semibold text-center">คงเหลือ</th>
+                            <th class="py-4 px-4 font-semibold text-center">หมดอายุ</th>
+                            <th class="py-4 px-4 font-semibold text-right">แคลอรี</th>
+                            <th class="py-4 px-4 font-semibold text-center">คะแนน</th>
+                            <th class="py-4 px-4 font-semibold text-center">เวลาเตรียม</th>
+                        </tr>
+                    </thead>
+                    <tbody id="menuTableBody" class="divide-y divide-slate-100 text-sm text-slate-600">
+                        <!-- ข้อมูลจะถูกโหลดผ่าน JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-4 bg-slate-50 border-t border-slate-100 text-xs text-slate-500 flex justify-between items-center">
+                <span id="itemCount">กำลังโหลดข้อมูล...</span>
+                <span>Merge Sort Algorithm O(n log n)</span>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        let allData = [];
+
+        async function fetchMenu() {
+            const field = document.getElementById('sortField').value;
+            const order = document.getElementById('sortOrder').value;
+
+            try {
+                const response = await fetch(`/api/menu?sort=${field}&order=${order}`);
+                allData = await response.json();
+                renderTable(allData);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('menuTableBody');
+            tbody.innerHTML = '';
+
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" class="text-center py-8 text-slate-400">ไม่พบข้อมูลเมนูที่ค้นหา</td></tr>`;
+                document.getElementById('itemCount').innerText = `แสดงผล 0 รายการ`;
+                return;
+            }
+
+            data.forEach((item, index) => {
+                const statusBadge = item.availability === 'พร้อมขาย' 
+                    ? `<span class="bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-full text-xs font-medium border border-emerald-100">พร้อมขาย</span>`
+                    : `<span class="bg-rose-50 text-rose-600 px-2.5 py-1 rounded-full text-xs font-medium border border-rose-100">หมด</span>`;
+
+                const row = document.createElement('tr');
+                row.className = index % 2 === 0 ? 'bg-white hover:bg-slate-50/80 transition' : 'bg-slate-50/40 hover:bg-slate-50/80 transition';
+                row.innerHTML = `
+                    <td class="py-3 px-4 text-center font-medium text-slate-700">${item.item_id}</td>
+                    <td class="py-3 px-4 font-semibold text-slate-800">${item.name}</td>
+                    <td class="py-3 px-4"><span class="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg text-xs">${item.category}</span></td>
+                    <td class="py-3 px-4 text-right font-medium text-slate-700">${item.price.toFixed(2)} ฿</td>
+                    <td class="py-3 px-4 text-center">${statusBadge}</td>
+                    <td class="py-3 px-4 text-center font-medium">${item.stock} ถาด</td>
+                    <td class="py-3 px-4 text-center text-xs text-slate-500">${item.expiry_date}</td>
+                    <td class="py-3 px-4 text-right text-slate-600">${item.calories} kcal</td>
+                    <td class="py-3 px-4 text-center font-medium text-amber-500">⭐ ${item.rating}</td>
+                    <td class="py-3 px-4 text-center text-xs text-slate-500">${item.preparation_time} นาที</td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            document.getElementById('itemCount').innerText = `แสดงผลทั้งหมด ${data.length} รายการ`;
+        }
+
+        // ค้นหาแบบ Real-time
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const keyword = e.target.value.toLowerCase();
+            const filtered = allData.filter(item => 
+                item.name.toLowerCase().includes(keyword) || 
+                item.category.toLowerCase().includes(keyword)
+            );
+            renderTable(filtered);
+        });
+
+        // โหลดข้อมูลครั้งแรกเมื่อเปิดหน้าเว็บ
+        window.onload = fetchMenu;
+    </script>
+</body>
+</html>
